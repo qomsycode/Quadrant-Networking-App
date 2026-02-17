@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "534038721238",
+    "project_id": "quadrant-9c3a6",
+    "storage_bucket": "quadrant-9c3a6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534038721238:android:a271fc751e48a872ca4f77",
+        "android_client_info": {
+          "package_name": "com.example.networking_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa2cLSmuPTYKLBXe7EWuZ5xxyXhxMzbRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:534038721238:android:d3402ba06857427cca4f77",
+        "android_client_info": {
+          "package_name": "quadrant.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa2cLSmuPTYKLBXe7EWuZ5xxyXhxMzbRs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

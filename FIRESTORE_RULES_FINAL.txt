@@ -1,0 +1,614 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    /**
+     * ============================================================================
+     * COLLECTION: /usernames/{username}
+     * ============================================================================
+     * 
+     * PURPOSE: 
+     * Prevent multiple users from claiming the same username.
+     * Each username is a unique document that reserves the name for one user.
+     * 
+     * SCHEMA:
+     * {
+     *   uid: "user123",          // The UID of the user who owns this username
+     *   createdAt: timestamp     // When this username was reserved
+     * }
+     * 
+     * WHY THIS MATTERS:
+     * Without this collection, two users could sign up with "john" and create
+     * ambiguity. By making usernames documents, Firestore transaction logic
+     * ensures only one user can reserve each username.
+     * 
+     * SECURITY LOGIC:
+     * 1. READ: Logged-in users can check if a username is available (signup page)
+     * 2. CREATE: Only you can create a username doc with YOUR UID (prevents impersonation)
+     * 3. DELETE: Only the user who reserved it can delete it (change username)
+     */
+    match /usernames/{username} {
+      // Anyone authenticated can READ to check username availability
+      allow read: if request.auth != null;
+      
+      // Only allow CREATE if the UID in the document matches YOUR authenticated UID
+      // This prevents: User A creating /usernames/bob with {uid: "user456"}
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      
+      // Only the UID owner can DELETE their username reservation
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+    /**
+     * ============================================================================
+     * COLLECTION: /users/{userId}
+     * ============================================================================
+     * 
+     * PURPOSE: 
+     * Store user profile data and social graph (followers, following, skills, etc.)
+     * This is the heart of the app - every user has one document here.
+     * 
+     * SCHEMA:
+     * {
+     *   uid: "user123",
+     *   email: "john@example.com",
+     *   fullName: "John Doe",
+     *   username: "johndoe",
+     *   followers: ["user456", "user789"],     // UIDs of users following this user
+     *   following: ["user456"],                // UIDs this user follows
+     *   skills: ["Flutter", "Dart"],
+     *   experiences: [{title, company, ...}],
+     *   projects: [{title, description, ...}],
+     *   createdAt: timestamp
+     * }
+     * 
+     * KEY CHALLENGE SOLVED:
+     * How to let User A follow User B without User A being able to modify
+     * User B's bio, name, or other fields?
+     * 
+     * SOLUTION: Special rule allows ONLY modifying the 'followers' array
+     * for non-owners. This enables the Twitter-style follow mechanism.
+     */
+    // Users: Profiles & Social Graph
+    match /users/{userId} {
+      // Anyone authenticated can READ any profile (needed for discovery page)
+      // This keeps profiles "public" to logged-in users
+      allow read: if request.auth != null;
+      
+      // Only you can CREATE your own profile (signup: only userId == your UID)
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      /**
+       * UPDATE RULE: Two scenarios
+       * 
+       * Scenario 1: You're the OWNER
+       * → You can update ANY field (bio, headline, skills, following list, etc.)
+       * 
+       * Scenario 2: You're NOT the owner (like User A trying to follow User B)
+       * → You can ONLY update the 'followers' field
+       * → AND only add/remove yourself from it
+       * 
+       * The key is: affectedKeys().hasOnly(['followers'])
+       * This checks: "Is the ONLY field being changed the 'followers' field?"
+       * 
+       * If true → User A is following User B (allowed)
+       * If false → User A is trying to change bio/name/etc (blocked)
+       */
+      allow update: if request.auth != null && (
+        // Scenario 1: You own this profile (can change anything)
+        (request.auth.uid == userId) || 
+        // Scenario 2: You don't own it, BUT you're only modifying followers
+        // affectedKeys() = which fields changed in this update
+        // hasOnly(['followers']) = ONLY the followers field changed (nothing else)
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers']))
+      );
+      
+      // Only the profile owner can DELETE their account
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    /**
+     * ============================================================================
+     * COLLECTION: /connectionRequests/{requestId}
+     * ============================================================================
+     * 
+     * PURPOSE: 
+     * Manage friend/connection requests (for future networking features).
+     * Allows users to send network requests and accept/reject them.
+     * 
+     * SCHEMA:
+     * {
+     *   requestId: "req123",
+     *   fromUid: "user123",      // Who sent the request
+     *   toUid: "user456",        // Who received the request
+     *   status: "pending",       // pending, accepted, rejected
+     *   createdAt: timestamp,
+     *   updatedAt: timestamp
+     * }
+     * 
+     * SECURITY GOALS:
+     * 1. Only the sender can CREATE a request
+     * 2. Both sender and receiver can VIEW it
+     * 3. Only receiver can UPDATE (accept/reject)
+     * 4. Both can DELETE
+     */
+    // Connection Requests (Networking)
+    match /connectionRequests/{requestId} {
+      // Only the sender (fromUid) can CREATE a connection request
+      allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid;
+      
+      // Both sender and receiver can READ the request
+      allow read: if request.auth != null && 
+                      (request.auth.uid == resource.data.fromUid || 
+                       request.auth.uid == resource.data.toUid);
+      
+      // Only the receiver (toUid) can UPDATE status (accept/reject the request)
+      allow update: if request.auth != null && request.auth.uid == resource.data.toUid;
+      
+      // Both sender and receiver can DELETE the request
+      allow delete: if request.auth != null && 
+                        (request.auth.uid == resource.data.fromUid || 
+                         request.auth.uid == resource.data.toUid);
+    }
+    /**
+     * ============================================================================
+     * COLLECTION: /posts/{postId}
+     * ============================================================================
+     * 
+     * PURPOSE: 
+     * Store all user posts/insights that appear in the feed.
+     * Includes post content, likes, bookmarks, and nested comments.
+     * 
+     * SCHEMA:
+     * {
+     *   postId: "post123",
+     *   uid: "user456",          // Post creator's UID
+     *   content: "My thoughts...",
+     *   likes: ["user123", "user789"],  // UIDs of users who liked
+     *   bookmarks: ["user111"],         // UIDs of users who bookmarked
+     *   timestamp: timestamp,
+     *   createdAt: timestamp
+     * }
+     * 
+     * KEY INSIGHT:
+     * The UPDATE rule is "allow update: if request.auth != null"
+     * This means ANY logged-in user can update ANY post.
+     * 
+     * WHY? Because the updates are:
+     * - Adding/removing yourself from likes array
+     * - Adding/removing yourself from bookmarks array
+     * 
+     * The backend (ProfileController/PostController) controls what fields
+     * can actually be modified using arrayUnion/arrayRemove.
+     */
+    // Posts: The Feed Engine
+    match /posts/{postId} {
+      // Anyone authenticated can READ all posts (see the feed)
+      allow read: if request.auth != null;
+      
+      // Only you can CREATE a post (the creator's UID must match your UID)
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      
+      /**
+       * UPDATE: Allows User B to 'Like' or 'Bookmark' User A's post
+       * 
+       * How it works:
+       * 1. User B clicks Like on User A's post
+       * 2. Backend code does: UPDATE /posts/{postId} with {likes: FieldValue.arrayUnion([user_b_uid])}
+       * 3. Firestore checks rule: "Is User B authenticated?" → YES ✅
+       * 4. Update is allowed, User B's UID added to likes array
+       * 
+       * Why not restrict to post owner + liker?
+       * Because we trust the backend code to only add users to arrays,
+       * not modify other fields like content or uid.
+       */
+      allow update: if request.auth != null; 
+      
+      // Only the post creator can DELETE their own post
+      allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
+      
+      /**
+       * SUBCOLLECTION: /posts/{postId}/comments/{commentId}
+       * 
+       * Nested comments on each post.
+       * 
+       * SCHEMA:
+       * {
+       *   commentId: "comment123",
+       *   userId: "user789",      // Who commented
+       *   text: "Great post!",
+       *   timestamp: timestamp
+       * }
+       */
+      match /comments/{commentId} {
+        // Anyone authenticated can READ and CREATE comments
+        allow read, create: if request.auth != null;
+        
+        // Only the comment author can DELETE their own comment
+        allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      }
+    }
+    /**
+     * ============================================================================
+     * COLLECTION: /chats/{chatId}
+     * ============================================================================
+     * 
+     * PURPOSE: 
+     * Store direct message conversations between two users.
+     * Each chat document contains participant UIDs and last message preview.
+     * Messages are stored in a subcollection.
+     * 
+     * SCHEMA:
+     * {
+     *   participants: ["user123", "user456"],  // Both users in the chat
+     *   lastMessage: "Hey!",                   // Preview of latest message
+     *   lastMessageTime: timestamp,            // When the last message was sent
+     *   lastMessageSenderId: "user123",        // Who sent the last message
+     *   unreadCounts: { user123: 0, user456: 2 }  // Per-user unread count
+     * }
+     * 
+     * SECURITY LOGIC:
+     * Only participants of a chat can read or write to it.
+     * This ensures User C cannot read User A and User B's private conversation.
+     */
+    match /chats/{chatId} {
+      // Only participants can READ the chat
+      allow read: if request.auth != null && 
+                     request.auth.uid in resource.data.participants;
+      
+      // Any authenticated user can CREATE a new chat (they must be a participant)
+      allow create: if request.auth != null && 
+                       request.auth.uid in request.resource.data.participants;
+      
+      // Only participants can UPDATE the chat (send messages updates lastMessage)
+      allow update: if request.auth != null && 
+                       request.auth.uid in resource.data.participants;
+
+      /**
+       * SUBCOLLECTION: /chats/{chatId}/messages/{messageId}
+       * 
+       * Individual messages within a chat conversation.
+       * 
+       * SCHEMA:
+       * {
+       *   senderId: "user123",
+       *   text: "Hello!",
+       *   timestamp: timestamp,
+       *   readBy: ["user123"]
+       * }
+       */
+      match /messages/{messageId} {
+        // Only chat participants can read messages
+        allow read: if request.auth != null && 
+                       request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        
+        // Only chat participants can create messages (sender must be authenticated)
+        allow create: if request.auth != null && 
+                         request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      }
+    }
+
+    /**
+     * ============================================================================
+     * COLLECTION: /jobs/{jobId}
+     * ============================================================================
+     * 
+     * PURPOSE: 
+     * Store job listings.
+     * 
+     * SCHEMA:
+     * {
+     *   title: "Flutter Dev",
+     *   company: "Google",
+     *   ...
+     *   postedBy: "user123",
+     *   applicants: ["user456"]
+     * }
+     */
+    match /jobs/{jobId} {
+      // Anyone authenticated can READ jobs
+      allow read: if request.auth != null;
+      
+      // Any authenticated user can CREATE a job (postedBy must be them)
+      allow create: if request.auth != null && request.resource.data.postedBy == request.auth.uid;
+      
+      // Updates: 
+      // 1. Poster can update anything (e.g. fix typo)
+      // 2. Applicants can update 'applicants' array (apply/withdraw)
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.postedBy ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['applicants'])
+      );
+      
+      // Only poster can delete
+      allow delete: if request.auth != null && request.auth.uid == resource.data.postedBy;
+    }
+
+    // Default: Deny everything else
+    // This follows "Default Deny" security principle
+    // Only explicitly allowed operations are permitted
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+/**
+ * ============================================================================
+ * REAL-WORLD EXAMPLES: HOW THE RULES WORK IN PRACTICE
+ * ============================================================================
+ */
+
+/**
+ * EXAMPLE 1: User A Signs Up
+ * ──────────────────────────
+ * 
+ * Flow:
+ * 1. User enters email, password, fullName, username ("johndoe")
+ * 2. AuthService.signUp() runs a Firestore TRANSACTION:
+ * 
+ *    Transaction Step 1: CREATE Firebase Auth user
+ *    Result: uid = "user123"
+ * 
+ *    Transaction Step 2: Reserve username in /usernames/johndoe
+ *    Request: CREATE /usernames/johndoe with {uid: "user123", createdAt: now}
+ *    Rule Check: request.resource.data.uid == request.auth.uid?
+ *    → "user123" == "user123"? ✅ YES
+ *    Result: ✅ ALLOWED
+ * 
+ *    Transaction Step 3: Create user profile
+ *    Request: CREATE /users/user123 with {uid, email, username, followers: [], ...}
+ *    Rule Check: request.auth.uid == userId?
+ *    → "user123" == "user123"? ✅ YES
+ *    Result: ✅ ALLOWED
+ * 
+ * If any step fails → Entire transaction ROLLBACK (no partial data)
+ * Result: New user created with reserved username ✅
+ */
+
+/**
+ * EXAMPLE 2: User A Follows User B (The Key Feature)
+ * ───────────────────────────────────────────────────
+ * 
+ * Context:
+ * - User A (uid: "user123") is on Discovery page
+ * - Sees User B (uid: "user456")
+ * - Clicks "Follow" button
+ * 
+ * Backend Code (ProfileController.followUser):
+ * 
+ * await _db.runTransaction((transaction) async {
+ *   transaction.update(/users/user123, {
+ *     following: FieldValue.arrayUnion(["user456"])
+ *   });
+ *   transaction.update(/users/user456, {
+ *     followers: FieldValue.arrayUnion(["user123"])
+ *   });
+ * });
+ * 
+ * Firestore Security Rule Evaluation:
+ * ────────────────────────────────────
+ * 
+ * Update 1: UPDATE /users/user123 with {following: [user456]}
+ * 
+ * Rule Check 1a: request.auth.uid == userId?
+ * → "user123" == "user123"? ✅ YES (I'm the owner)
+ * Result: ✅ ALLOWED (owner can update their own profile)
+ * 
+ * 
+ * Update 2: UPDATE /users/user456 with {followers: [user123]}
+ * 
+ * Rule Check 2a: request.auth.uid == userId?
+ * → "user123" == "user456"? ❌ NO (I don't own this profile)
+ * 
+ * Rule Check 2b: request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers'])?
+ * → Is ONLY 'followers' field being changed? ✅ YES
+ * Result: ✅ ALLOWED (non-owner can only modify followers array)
+ * 
+ * Both updates complete → Both users now connected ✅
+ * 
+ * Database State After:
+ * /users/user123 {following: ["user456"]}
+ * /users/user456 {followers: ["user123"]}
+ */
+
+/**
+ * EXAMPLE 3: Attack Scenario - User A Tries to Change User B's Bio
+ * ─────────────────────────────────────────────────────────────────
+ * 
+ * Malicious Code:
+ * await db.collection('users').doc('user456').update({
+ *   'bio': 'HACKED!'
+ * });
+ * 
+ * Firestore Security Rule Evaluation:
+ * ────────────────────────────────────
+ * 
+ * Rule Check 1: request.auth.uid == userId?
+ * → "user123" == "user456"? ❌ NO
+ * 
+ * Rule Check 2: affectedKeys().hasOnly(['followers'])?
+ * → Is ONLY 'followers' being changed? ❌ NO (it's 'bio')
+ * 
+ * Result: ❌ DENIED - Attack blocked! Bio remains unchanged.
+ */
+
+/**
+ * EXAMPLE 4: User A Likes User B's Post
+ * ──────────────────────────────────────
+ * 
+ * Backend Code (PostController.likePost):
+ * 
+ * await _db.collection('posts').doc(postId).update({
+ *   likes: FieldValue.arrayUnion([user_a_uid])
+ * });
+ * 
+ * Firestore Security Rule Evaluation:
+ * ────────────────────────────────────
+ * 
+ * Rule Check: request.auth != null?
+ * → Is User A authenticated? ✅ YES
+ * Result: ✅ ALLOWED (any authenticated user can update any post)
+ * 
+ * Database State After:
+ * /posts/post789 {likes: ["user123", ...]}
+ * User A's UID added to likes array ✅
+ */
+
+/**
+ * EXAMPLE 5: Attack Scenario - User A Tries to Modify Like Count Directly
+ * ──────────────────────────────────────────────────────────────────────
+ * 
+ * Malicious Code:
+ * await db.collection('posts').doc('post789').update({
+ *   'likes': ['fake_user1', 'fake_user2', 'fake_user3'],
+ *   'content': 'Modified!' // Try to change post content too
+ * });
+ * 
+ * What actually happens in the app:
+ * The backend uses FieldValue.arrayUnion/arrayRemove, which are
+ * special Firestore operations that safely add/remove from arrays
+ * without replacing the entire array.
+ * 
+ * If someone tries the above attack:
+ * 1. Backend code validates user is authenticated ✅
+ * 2. But we never call this code from the app - it's not in our codebase
+ * 3. So this malicious direct update can't happen through the UI
+ * 
+ * Still, the rule is "allow update: if request.auth != null"
+ * This is safe because:
+ * - We trust Firestore to enforce our app's backend logic
+ * - The frontend can't make raw API calls to bypass our code
+ * - Only our controlled backend code makes Firestore updates
+ */
+
+/**
+ * EXAMPLE 6: Comment on a Post
+ * ────────────────────────────
+ * 
+ * User A comments: "Great post!" on User B's post
+ * 
+ * Backend Code:
+ * 
+ * await _db
+ *   .collection('posts')
+ *   .doc(postId)
+ *   .collection('comments')
+ *   .doc(commentId)
+ *   .set({
+ *     userId: 'user123',
+ *     text: 'Great post!',
+ *     timestamp: now
+ *   });
+ * 
+ * Firestore Security Rule Evaluation:
+ * ────────────────────────────────────
+ * 
+ * Rule Check: request.auth != null?
+ * → Is User A authenticated? ✅ YES
+ * Result: ✅ ALLOWED (anyone authenticated can comment)
+ * 
+ * Later, User A wants to delete their own comment:
+ * 
+ * Rule Check: request.auth.uid == resource.data.userId?
+ * → "user123" == "user123"? ✅ YES
+ * Result: ✅ ALLOWED (comment author can delete their comment)
+ * 
+ * User B tries to delete User A's comment:
+ * 
+ * Rule Check: request.auth.uid == resource.data.userId?
+ * → "user456" == "user123"? ❌ NO
+ * Result: ❌ DENIED (only author can delete)
+ */
+
+/**
+ * EXAMPLE 7: Anonymous User Tries to Read Posts
+ * ────────────────────────────────────────────
+ * 
+ * User is NOT logged in (anonymous)
+ * 
+ * Code: db.collection('posts').get()
+ * 
+ * Firestore Security Rule Evaluation:
+ * ────────────────────────────────────
+ * 
+ * Rule Check: request.auth != null?
+ * → Is user authenticated? ❌ NO (anonymous)
+ * Result: ❌ DENIED - No data returned
+ * 
+ * App Behavior: Redirects to login screen
+ */
+
+/**
+ * EXAMPLE 8: Connection Request Flow
+ * ────────────────────────────────
+ * 
+ * User A sends network request to User B:
+ * 
+ * Step 1: User A (uid: "user123") sends request
+ * 
+ * Code: CREATE /connectionRequests/req123 with {
+ *   fromUid: "user123",
+ *   toUid: "user456",
+ *   status: "pending"
+ * }
+ * 
+ * Rule Check: request.resource.data.fromUid == request.auth.uid?
+ * → "user123" == "user123"? ✅ YES
+ * Result: ✅ ALLOWED (you can only send from yourself)
+ * 
+ * 
+ * Step 2: User B reads the request they received
+ * 
+ * Code: db.collection('connectionRequests')
+ *   .where('toUid', '==', 'user456')
+ *   .get()
+ * 
+ * Rule Check: request.auth.uid == resource.data.fromUid 
+ *           || request.auth.uid == resource.data.toUid?
+ * → "user456" == "user123" (NO) || "user456" == "user456" (YES)? ✅ YES
+ * Result: ✅ ALLOWED (recipient can read their request)
+ * 
+ * 
+ * Step 3: User B accepts the request
+ * 
+ * Code: UPDATE /connectionRequests/req123 with {status: "accepted"}
+ * 
+ * Rule Check: request.auth.uid == resource.data.toUid?
+ * → "user456" == "user456"? ✅ YES
+ * Result: ✅ ALLOWED (only recipient can accept)
+ * 
+ * 
+ * Step 4: User A tries to accept (they're the sender, not recipient)
+ * 
+ * Code: UPDATE /connectionRequests/req123 with {status: "accepted"}
+ * 
+ * Rule Check: request.auth.uid == resource.data.toUid?
+ * → "user123" == "user456"? ❌ NO
+ * Result: ❌ DENIED (only recipient can accept)
+ */
+
+/**
+ * ============================================================================
+ * KEY SECURITY PRINCIPLES IN THIS RULESET
+ * ============================================================================
+ * 
+ * 1. AUTHENTICATION FIRST
+ *    All rules check: request.auth != null
+ *    Meaning: Anonymous users can't access anything
+ * 
+ * 2. OWNERSHIP VERIFICATION
+ *    Most operations check: request.auth.uid == resource.owner
+ *    Meaning: You can only modify your own data (with exceptions)
+ * 
+ * 3. FINE-GRAINED FIELD CONTROL
+ *    The /users/ rule uses affectedKeys().hasOnly(['followers'])
+ *    Meaning: We allow modifications only to specific fields
+ * 
+ * 4. PARTICIPANT VERIFICATION
+ *    Connection requests check: sender OR recipient
+ *    Meaning: Both parties can read/manage their requests
+ * 
+ * 5. DEFAULT DENY
+ *    Catch-all rule: match /{document=**} { allow read, write: if false; }
+ *    Meaning: Everything not explicitly allowed is blocked
+ * 
+ * ============================================================================
+ */

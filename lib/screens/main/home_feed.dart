@@ -81,12 +81,12 @@ class HomeFeedPage extends StatelessWidget {
                       ),
                     )
                   : ListView.builder(
-                      // Add 1 ad for every 4 posts
-                      itemCount: controller.allPosts.length + (controller.allPosts.length ~/ 4),
+                      // Add 1 ad for every 10 posts
+                      itemCount: controller.allPosts.length + (controller.allPosts.length ~/ 10),
                       itemBuilder: (context, index) {
-                        // Logic: Items 0-3 = Posts, 4 = Ad, 5-8 = Posts, 9 = Ad...
-                        // If index+1 is divisible by 5, it's an ad slot
-                        final isAd = (index + 1) % 5 == 0;
+                        // Logic: Items 0-9 = Posts, 10 = Ad, 11-20 = Posts, 21 = Ad...
+                        // If index+1 is divisible by 11, it's an ad slot
+                        final isAd = (index + 1) % 11 == 0;
 
                         if (isAd) {
                           return const Column(
@@ -99,8 +99,8 @@ class HomeFeedPage extends StatelessWidget {
                         }
 
                         // Calculate actual post index
-                        // For every 5 items, we have 1 ad, so subtract (index ~/ 5) ads
-                        final postIndex = index - (index ~/ 5);
+                        // For every 11 items, we have 1 ad, so subtract (index ~/ 11) ads
+                        final postIndex = index - (index ~/ 11);
                         
                         // Safety check
                         if (postIndex >= controller.allPosts.length) return const SizedBox();

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
 import '../../core/app_theme.dart';
 import '../../core/snackbar_util.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
-  const ForgotPasswordScreen({super.key});
+  ForgotPasswordScreen({super.key});
+
+  final TextEditingController _emailController = TextEditingController();
+  final AuthController _authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
@@ -27,65 +31,73 @@ class ForgotPasswordScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                "Reset Password",
-                style: theme.textTheme.displayLarge, // Professional Bold Navy
-              ),
-              const SizedBox(height: 12),
-              Text(
-                "Enter your email address and we will send you a link to reset your account access.",
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.white70
-                      : AppTheme.deepNavy.withValues(alpha: 0.6),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  "Reset Password",
+                  style: theme.textTheme.displayLarge, // Professional Bold Navy
                 ),
-              ),
-              const SizedBox(height: 40),
-
-              // Standardized Input Field
-              _buildStandardTextField(
-                context: context,
-                hint: "Email Address",
-                icon: Icons.email_outlined,
-              ),
-              const SizedBox(height: 30),
-
-              // Primary Action Button
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryBlue,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    // Firebase logic for password reset will go here
-                    SnackbarUtil.info(
-                      "Link Sent",
-                      "Please check your email to reset your password.",
-                    );
-                  },
-                  child: const Text(
-                    "Send Reset Link",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                const SizedBox(height: 12),
+                Text(
+                  "Enter your email address and we will send you a link to reset your account access.",
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.brightness == Brightness.dark
+                        ? Colors.white70
+                        : AppTheme.deepNavy.withValues(alpha: 0.6),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 40),
+
+                // Standardized Input Field
+                _buildStandardTextField(
+                  context: context,
+                  hint: "Email Address",
+                  icon: Icons.email_outlined,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 30),
+
+                // Primary Action Button
+                Obx(
+                  () => SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryBlue,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _authController.isLoading.value
+                          ? null
+                          : () {
+                              _authController.resetPassword(
+                                _emailController.text,
+                              );
+                            },
+                      child: _authController.isLoading.value
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              "Send Reset Link",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -97,6 +109,8 @@ class ForgotPasswordScreen extends StatelessWidget {
     required String hint,
     required IconData icon,
     required BuildContext context,
+    required TextEditingController controller,
+    TextInputType? keyboardType,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -106,6 +120,8 @@ class ForgotPasswordScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
         style: TextStyle(
           color: Theme.of(context).brightness == Brightness.dark
               ? Colors.white

@@ -95,4 +95,36 @@ class AuthController extends GetxController {
       );
     }
   }
+
+  /// Sends a password reset email
+  Future<void> resetPassword(String email) async {
+    if (email.isEmpty) {
+      SnackbarUtil.error("Validation Error", "Please enter your email address");
+      return;
+    }
+
+    isLoading.value = true;
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      isLoading.value = false;
+      SnackbarUtil.success(
+        "Link Sent",
+        "Please check your email to reset your password.",
+      );
+      // Go back to sign in after success
+      await Future.delayed(const Duration(milliseconds: 1500));
+      Get.back();
+    } catch (e) {
+      isLoading.value = false;
+      String message = "Could not send reset link. Please try again.";
+      if (e is FirebaseAuthException) {
+        if (e.code == 'user-not-found') {
+          message = "No account found for this email.";
+        } else if (e.code == 'invalid-email') {
+          message = "The email address is not valid.";
+        }
+      }
+      SnackbarUtil.error("Reset Failed", message);
+    }
+  }
 }

@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
     User? user = FirebaseAuth.instance.currentUser;
 
     // Show splash for 3 seconds for nice branding UX
-    await Future.delayed(const Duration(milliseconds: 7000));
+    await Future.delayed(const Duration(milliseconds: 3000));
 
     if (!mounted) return;
 

@@ -21,27 +21,27 @@ import '../../controllers/chat_controller.dart';
 /// MAIN LAYOUT (Navigation Hub)
 /// ==========================================
 ///
-/// This widget serves as the primary shell of the application after 
-/// successful authentication. It manages global navigation and 
+/// This widget serves as the primary shell of the application after
+/// successful authentication. It manages global navigation and
 /// persistent UI elements like the AppBar, Drawer, and BottomBar.
 ///
 /// KEY ARCHITECTURE:
 /// ------------------------------------------
-/// 1. IndexedStack: We use an IndexedStack to preserve the state of 
-///    all main pages (Home, Discovery, Jobs, Profile). Switching tabs 
+/// 1. IndexedStack: We use an IndexedStack to preserve the state of
+///    all main pages (Home, Discovery, Jobs, Profile). Switching tabs
 ///    does NOT reload the page, providing a "Native App" feel.
-/// 2. Reactive UI: Wraps the entire Scaffold in an 'Obx' listener to 
+/// 2. Reactive UI: Wraps the entire Scaffold in an 'Obx' listener to
 ///    automatically react to global theme changes or chat unread counts.
-/// 3. Navigation Logic: 
+/// 3. Navigation Logic:
 ///    - BottomNavigationBar: Primary app sections.
 ///    - Drawer: Secondary features (Bookmarks, Settings).
 ///    - Search: Global search entry point in the AppBar.
 ///
 /// REAL-TIME INTEGRATION:
 /// ------------------------------------------
-/// - Profile Picture: Listens to a Firestore stream for the current user 
+/// - Profile Picture: Listens to a Firestore stream for the current user
 ///   to ensure the AppBar avatar is always up to date.
-/// - Chat Badge: Listens to the 'ChatController' to show unread message 
+/// - Chat Badge: Listens to the 'ChatController' to show unread message
 ///   counts on the chat icon.
 ///
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -118,7 +118,8 @@ class _MainLayoutState extends State<MainLayout> {
                           builder: (context, snapshot) {
                             String? profileImageUrl;
                             if (snapshot.hasData && snapshot.data!.exists) {
-                              final data = snapshot.data!.data() as Map<String, dynamic>;
+                              final data =
+                                  snapshot.data!.data() as Map<String, dynamic>;
                               profileImageUrl = data['profileImageUrl'];
                             }
                             return GestureDetector(
@@ -127,10 +128,14 @@ class _MainLayoutState extends State<MainLayout> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: CircleAvatar(
                                   backgroundColor: Colors.white24,
-                                  backgroundImage: (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                                  backgroundImage:
+                                      (profileImageUrl != null &&
+                                          profileImageUrl.isNotEmpty)
                                       ? NetworkImage(profileImageUrl)
                                       : null,
-                                  child: (profileImageUrl == null || profileImageUrl.isEmpty)
+                                  child:
+                                      (profileImageUrl == null ||
+                                          profileImageUrl.isEmpty)
                                       ? const Icon(
                                           Icons.person,
                                           color: Colors.white,
@@ -163,9 +168,14 @@ class _MainLayoutState extends State<MainLayout> {
                           return Stack(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+                                icon: const Icon(
+                                  Icons.chat_bubble_outline,
+                                  color: Colors.white,
+                                ),
                                 onPressed: () => Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const ChatListPage()),
+                                  MaterialPageRoute(
+                                    builder: (_) => const ChatListPage(),
+                                  ),
                                 ),
                               ),
                               if (unread > 0)
@@ -173,12 +183,18 @@ class _MainLayoutState extends State<MainLayout> {
                                   right: 8,
                                   top: 8,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 1,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.red,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
                                     child: Text(
                                       unread > 99 ? '99+' : '$unread',
                                       style: const TextStyle(
@@ -273,15 +289,18 @@ class _MainLayoutState extends State<MainLayout> {
                     : "Q";
               }
 
-              final String? profileImageUrl = (snapshot.hasData && snapshot.data!.exists)
-                  ? (snapshot.data!.data() as Map<String, dynamic>)['profileImageUrl']
+              final String? profileImageUrl =
+                  (snapshot.hasData && snapshot.data!.exists)
+                  ? (snapshot.data!.data()
+                        as Map<String, dynamic>)['profileImageUrl']
                   : null;
 
               return UserAccountsDrawerHeader(
                 decoration: const BoxDecoration(color: AppTheme.primaryBlue),
                 currentAccountPicture: CircleAvatar(
                   backgroundColor: Colors.white,
-                  backgroundImage: (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                  backgroundImage:
+                      (profileImageUrl != null && profileImageUrl.isNotEmpty)
                       ? NetworkImage(profileImageUrl)
                       : null,
                   child: (profileImageUrl == null || profileImageUrl.isEmpty)

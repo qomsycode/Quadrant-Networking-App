@@ -492,4 +492,27 @@ class AuthService extends GetxService {
       debugPrint('SignOut: navigation failed - $e');
     }
   }
+
+  /// ==========================================
+  /// PASSWORD RESET
+  /// ==========================================
+  ///
+  /// Sends a password reset email to the provided address.
+  ///
+  /// Possible Errors:
+  /// - user-not-found: Email not registered
+  /// - invalid-email: Email format incorrect
+  /// - network-request-failed: Connection issues
+  ///
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      debugPrint('PasswordReset: FirebaseAuthException - ${e.code}');
+      rethrow;
+    } catch (e) {
+      debugPrint('PasswordReset: General exception - $e');
+      rethrow;
+    }
+  }
 }

@@ -1,0 +1,124 @@
+﻿Analyzing networking_app...                                     
+
+warning - Duplicate import - lib\controllers\chat_controller.dart:6:8 - duplicate_import
+warning - Duplicate import - lib\controllers\chat_controller.dart:7:8 - duplicate_import
+warning - Duplicate import - lib\controllers\chat_controller.dart:8:8 - duplicate_import
+warning - The value of the field '_storage' isn't used - lib\controllers\post_controller.dart:41:25 - unused_field
+   info - Use the null-aware marker '?' rather than a null check via an 'if' - lib\controllers\profile_controller.dart:343:9 - use_null_aware_elements
+   info - Use the null-aware marker '?' rather than a null check via an 'if' - lib\controllers\profile_controller.dart:344:9 - use_null_aware_elements
+   info - Use the null-aware marker '?' rather than a null check via an 'if' - lib\controllers\profile_controller.dart:345:9 - use_null_aware_elements
+   info - Use the null-aware marker '?' rather than a null check via an 'if' - lib\controllers\profile_controller.dart:346:9 - use_null_aware_elements
+   info - Missing type annotation - lib\controllers\theme_controller.dart:21:3 - strict_top_level_inference
+warning - Unused import: 'package:flutter/foundation.dart' - lib\debug_firestore.dart:3:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:8:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:12:3 - avoid_print
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:19:3 - avoid_print
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:22:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:23:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:24:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:25:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:26:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\debug_firestore.dart:27:5 - avoid_print
+   info - Angle brackets will be interpreted as HTML - lib\models\chat_model.dart:20:23 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\chat_model.dart:24:22 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\job_model.dart:18:21 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\message_model.dart:15:17 - unintended_html_in_doc_comment
+warning - Unused import: 'package:cloud_firestore/cloud_firestore.dart' - lib\models\post_model.dart:1:8 - unused_import
+   info - Angle brackets will be interpreted as HTML - lib\models\post_model.dart:16:20 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\post_model.dart:19:18 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\post_model.dart:20:18 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\post_model.dart:23:15 - unintended_html_in_doc_comment
+warning - Unused import: 'package:cloud_firestore/cloud_firestore.dart' - lib\models\user_model.dart:1:8 - unused_import
+   info - Angle brackets will be interpreted as HTML - lib\models\user_model.dart:27:20 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\user_model.dart:28:20 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\user_model.dart:29:22 - unintended_html_in_doc_comment
+   info - Angle brackets will be interpreted as HTML - lib\models\user_model.dart:33:17 - unintended_html_in_doc_comment
+warning - Unused import: '../../core/snackbar_util.dart' - lib\screens\auth\forgot_password_screen.dart:5:8 - unused_import
+  error - The constructor being called isn't a const constructor - lib\screens\auth\sign_in_screen.dart:65:51 - const_with_non_const
+warning - Unused import: 'package:image_picker/image_picker.dart' - lib\screens\main\edit_profile_page.dart:3:8 - unused_import
+   info - Don't use 'BuildContext's across async gaps - lib\screens\main\experience_editor_dialog.dart:239:34 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\main\home_feed.dart:506:24 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\main\home_feed.dart:507:32 - deprecated_member_use
+warning - Duplicate import - lib\screens\main\main_layout.dart:47:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:48:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:49:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:50:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:51:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:52:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:53:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:54:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:55:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:56:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:57:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:58:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:59:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:60:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:61:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:62:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:63:8 - duplicate_import
+warning - Duplicate import - lib\screens\main\main_layout.dart:64:8 - duplicate_import
+warning - The value of the field '_mentionQuery' isn't used - lib\screens\main\post.dart:24:10 - unused_field
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\main\post_job_dialog.dart:117:29 - deprecated_member_use
+warning - Unused import: '../../models/education_model.dart' - lib\screens\main\profile_page.dart:13:8 - unused_import
+warning - The '!' will have no effect because the receiver can't be null - lib\screens\main\profile_page.dart:56:40 - unnecessary_non_null_assertion
+   info - Don't invoke 'print' in production code - lib\screens\main\profile_page.dart:471:34 - avoid_print
+warning - The operand can't be 'null', so the condition is always 'true' - lib\screens\main\profile_page.dart:892:53 - unnecessary_null_comparison
+warning - The '!' will have no effect because the receiver can't be null - lib\screens\main\profile_page.dart:894:52 - unnecessary_non_null_assertion
+   info - Don't use 'BuildContext's across async gaps - lib\screens\main\project_editor_dialog.dart:196:34 - use_build_context_synchronously
+   info - Unnecessary use of multiple underscores - lib\screens\main\search_results_page.dart:133:29 - unnecessary_underscores
+   info - The import of 'package:flutter/material.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/foundation.dart' - lib\services\ad_service.dart:2:8 - unnecessary_import
+   info - The private field _maxFailedLoadAttempts could be 'final' - lib\services\ad_service.dart:9:7 - prefer_final_fields
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:34:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:35:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:36:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:67:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:68:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:69:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:73:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:74:11 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:80:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:81:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:82:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_service.dart:83:7 - avoid_print
+warning - Unused import: 'package:web/web.dart' - lib\services\cloudinary_widget_service.dart:3:8 - unused_import
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_widget_service.dart:40:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_widget_service.dart:59:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_widget_service.dart:64:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_widget_service.dart:69:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_widget_service.dart:72:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\services\cloudinary_widget_service.dart:73:7 - avoid_print
+   info - The constant name 'FORCE_RESEED' isn't a lowerCamelCase identifier - lib\services\database_seeder.dart:8:21 - constant_identifier_names
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\job_service.dart:3:8 - unused_import
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:12:3 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:26:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:46:13 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:49:13 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:55:11 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:59:9 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:64:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:65:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:66:5 - avoid_print
+   info - Don't invoke 'print' in production code - scripts\fix_post_uids.dart:68:5 - avoid_print
+
+flutter : 99 issues 
+found. (ran in 9.4s)
+At line:1 char:1
++ flutter analyze 
+--no-fatal-infos 
+--no-fatal-warnings 
+> analysis.txt 2 ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (99 issu   
+ es found. (ran i    
+n 9.4s):String)     
+[], RemoteExcept    
+ion
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 

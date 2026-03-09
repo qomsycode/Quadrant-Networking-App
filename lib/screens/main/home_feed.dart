@@ -12,7 +12,6 @@ import 'profile_page.dart';
 import '../../widgets/mention_text.dart';
 import '../../widgets/skeleton_loader.dart';
 
-import '../../widgets/ad_banner.dart';
 import '../../screens/main/search_results_page.dart';
 
 class HomeFeedPage extends StatelessWidget {
@@ -80,32 +79,10 @@ class HomeFeedPage extends StatelessWidget {
                         ],
                       ),
                     )
-                  : ListView.builder(
-                      // Add 1 ad for every 7 posts
-                      itemCount: controller.allPosts.length + (controller.allPosts.length ~/ 7),
+                   : ListView.builder(
+                      itemCount: controller.allPosts.length,
                       itemBuilder: (context, index) {
-                        // Logic: Items 0-6 = Posts, 7 = Ad, 8-14 = Posts, 15 = Ad...
-                        // If index+1 is divisible by 8, it's an ad slot
-                        final isAd = (index + 1) % 8 == 0;
-
-                        if (isAd) {
-                          return const Column(
-                            children: [
-                              Divider(),
-                              AdBanner(),
-                              Divider(),
-                            ],
-                          );
-                        }
-
-                        // Calculate actual post index
-                        // For every 8 items, we have 1 ad, so subtract (index ~/ 8) ads
-                        final postIndex = index - (index ~/ 8);
-                        
-                        // Safety check
-                        if (postIndex >= controller.allPosts.length) return const SizedBox();
-
-                        final post = controller.allPosts[postIndex];
+                        final post = controller.allPosts[index];
                         return Column(
                           children: [
                             _buildFeedCard(
@@ -115,7 +92,7 @@ class HomeFeedPage extends StatelessWidget {
                               isDark,
                               currentUid,
                             ),
-                            const Divider(), // Manual divider since we removed ListView.separated
+                            const Divider(),
                           ],
                         );
                       },

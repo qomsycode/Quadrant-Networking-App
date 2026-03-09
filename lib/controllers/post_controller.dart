@@ -9,7 +9,6 @@ import '../models/post_model.dart';
 import '../models/comment_model.dart';
 import '../core/snackbar_util.dart';
 import '../services/cloudinary_widget_service.dart';
-import '../services/ad_service.dart';
 
 /// ==========================================
 /// POST CONTROLLER (GetX)
@@ -178,9 +177,6 @@ class PostController extends GetxController {
 
       Get.back(); // Close the post dialog
       SnackbarUtil.success('Success', 'Post shared successfully!');
-      
-      // Show Interstitial Ad
-      Get.find<AdService>().showInterstitial();
     } catch (e) {
       debugPrint("Post Error: $e");
       SnackbarUtil.error('Error', 'Failed to upload post: $e');
@@ -314,9 +310,6 @@ class PostController extends GetxController {
 
       Get.back(); // Close dialog
       SnackbarUtil.success('Success', 'Post shared with $mediaType!');
-
-      // Show Interstitial Ad
-      Get.find<AdService>().showInterstitial();
     } catch (e) {
       debugPrint('❌ Upload Error: $e');
       SnackbarUtil.error('Error', 'Failed to upload post: $e');

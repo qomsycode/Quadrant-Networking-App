@@ -37,9 +37,8 @@ import 'controllers/connection_controller.dart';
 import 'controllers/chat_controller.dart';
 import 'controllers/job_controller.dart';
 import 'services/auth_service.dart';
-import 'services/ad_service.dart';
-import 'core/web_ad_registry.dart';
 import 'services/database_seeder.dart';
+import 'services/cloudinary_service.dart';
 
 // --- SCREENS ---
 import 'screens/auth/splash_screen.dart';
@@ -66,12 +65,9 @@ void main() async {
   Get.put(AuthService());
   Get.put(AuthController());
   Get.put(ThemeController());
-  Get.put(AdService()).init();
   
-  // Register Web Ads (safe to call on mobile too as it has internal check, but keeping clean)
-  if (kIsWeb) {
-    registerAdSenseFactory();
-  }
+  // Initialize Cloudinary for Web (injects keys into JS context)
+  CloudinaryService.initWeb();
 
   // 5. Lazy-load HEAVY controllers (loaded only when first accessed)
   Get.lazyPut(() => FeedController(), fenix: true);

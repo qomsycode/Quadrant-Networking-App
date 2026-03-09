@@ -23,9 +23,6 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- GOOGLE ADSENSE (Replace ca-pub-xxx with your ID) -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7236930031419838"
-    crossorigin="anonymous"></script>
   <meta name="description" content="A new Flutter project.">
 
   <!-- iOS meta tags & icons -->
@@ -61,8 +58,8 @@
         }
 
         var config = {
-          cloudName: 'daulovm2u',
-          uploadPreset: 'quadrant_upload',
+          cloudName: window._cloudinaryCloudName || '',
+          uploadPreset: window._cloudinaryUploadPreset || '',
           sources: ['local', 'camera'],
           multiple: false,
           maxFiles: 1,

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:js' as js;
+import 'package:flutter/foundation.dart';
 
 /// ==========================================
 /// CLOUDINARY SERVICE
@@ -21,8 +23,23 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// Relies on .env for 'CLOUDINARY_CLOUD_NAME' and 'CLOUDINARY_UPLOAD_PRESET'.
 ///
 class CloudinaryService {
-  static String get _cloudName => dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? 'daulovm2u';
-  static String get _uploadPreset => dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? 'quadrant_upload';
+  static String get _cloudName => dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
+  static String get _uploadPreset => dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
+
+  /// Initializes Cloudinary for Web by injecting credentials into the JS global scope.
+  /// This prevents keys from being hardcoded in index.html.
+  static void initWeb() {
+    if (!kIsWeb) return;
+
+    // Use dart:js to set global variables
+    // This prevents keys from being hardcoded in index.html.
+    try {
+      js.context['_cloudinaryCloudName'] = _cloudName;
+      js.context['_cloudinaryUploadPreset'] = _uploadPreset;
+    } catch (e) {
+      debugPrint('CloudinaryService: Failed to init web keys - $e');
+    }
+  }
 
   /// Uploads a file to Cloudinary and returns the secure URL
   /// Returns null if upload fails

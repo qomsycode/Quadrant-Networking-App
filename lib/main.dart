@@ -108,6 +108,7 @@ class NetworkingApp extends StatelessWidget {
         themeMode: themeController.theme,
 
         // --- ENTRY POINT ---
+        builder: (context, child) => SelectionArea(child: child!),
         home: const SplashScreen(),
 
         // Optional: Global transition for a professional feel

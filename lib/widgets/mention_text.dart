@@ -19,7 +19,7 @@ class MentionText extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = baseStyle ?? const TextStyle(fontSize: 16);
     final spans = _buildSpans(context, text, style);
-    return RichText(text: TextSpan(children: spans));
+    return Text.rich(TextSpan(children: spans));
   }
 
   static List<InlineSpan> _buildSpans(
